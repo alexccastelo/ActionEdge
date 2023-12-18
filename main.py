@@ -39,7 +39,7 @@ url = "https://registro.br/"
 # Defina os caminhos dos elementos HTML que você deseja raspá-los
 element_path = '//input[@id="is-avail-field"]'
 element_button = '//*[@id="conteudo"]/div/section[1]/div[1]/form/div/button'
-element_text = "042vip.com.br"
+element_text = "acidoce.com.br"
 element_dominio = '//*[@id="conteudo"]/div/section/div[2]/div/strong'
 element_status = '//*[@id="conteudo"]/div/section/div[2]/div/p'
 element_disponiveis = '//*[@id="conteudo"]/div/section/div[2]/div/div[2]/ul/li/p'
