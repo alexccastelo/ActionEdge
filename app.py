@@ -41,8 +41,16 @@ def search():
 
         # Verificar se o termo de pesquisa está no título do grupo
         if search_term.lower() in title.lower():
-            links = group.xpath('.//a[contains(@class, "tabLink")]/@href')
-            results.append({"title": title, "links": links})
+            links = group.xpath('.//a[contains(@class, "tabLink")]')
+            results.append(
+                {
+                    "title": title,
+                    "links": [
+                        {"url": link.get("href"), "label": link.text_content().strip()}
+                        for link in links
+                    ],
+                }
+            )
 
     # Verificar se algum resultado foi encontrado
     no_results = (
@@ -61,7 +69,7 @@ def search():
             <div>
                 <h2>{{ result.title }}</h2>
                 {% for link in result.links %}
-                    <a href="{{ link }}">{{ link }}</a><br>
+                    <a href="{{ link.url }}">{{ link.label }}</a><br>
                 {% endfor %}
             </div>
             {% endfor %}
