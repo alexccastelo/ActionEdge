@@ -29,7 +29,7 @@ def search():
     response = requests.get("https://www.one-tab.com/page/sUT47ugRTz6Qd8X8r5C1RQ")
     tree = html.fromstring(response.content)
 
-    # Encontrar todos os elementos 'tabGroupTitleText' e seus links associados
+    # Encontrar todos os elementos 'tabGroup'
     groups = tree.xpath('//div[contains(@class, "tabGroup")]')
 
     results = []
@@ -38,34 +38,41 @@ def search():
         if not title:
             continue
         title = title[0].strip()
-        links = group.xpath('.//a[contains(@class, "tabLink")]/@href')
 
-        # Filtrar os links com base no termo de pesquisa
-        filtered_links = [link for link in links if search_term.lower() in link.lower()]
+        # Verificar se o termo de pesquisa está no título do grupo
+        if search_term.lower() in title.lower():
+            links = group.xpath('.//a[contains(@class, "tabLink")]/@href')
+            results.append({"title": title, "links": links})
 
-        if filtered_links:
-            results.append({"title": title, "links": filtered_links})
+    # Verificar se algum resultado foi encontrado
+    no_results = (
+        "Nenhum resultado encontrado para a sua pesquisa." if not results else ""
+    )
 
     # Construir a página de resultados
     results_html = """
     <html>
     <body>
         <h1>RESULTADOS</h1>
-        {% for result in results %}
-        <div>
-            <h2>{{ result.title }}</h2>
-            {% for link in result.links %}
-                <a href="{{ link }}">{{ link }}</a><br>
+        {% if no_results %}
+            <p>{{ no_results }}</p>
+        {% else %}
+            {% for result in results %}
+            <div>
+                <h2>{{ result.title }}</h2>
+                {% for link in result.links %}
+                    <a href="{{ link }}">{{ link }}</a><br>
+                {% endfor %}
+            </div>
             {% endfor %}
-        </div>
-        {% endfor %}
+        {% endif %}
         <form action="/">
             <input type="submit" value="Nova Pesquisa">
         </form>
     </body>
     </html>
     """
-    return render_template_string(results_html, results=results)
+    return render_template_string(results_html, results=results, no_results=no_results)
 
 
 if __name__ == "__main__":
