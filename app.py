@@ -8,7 +8,8 @@ app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def index():
     # Retornar o formulário de pesquisa
-    form_html = """
+    return render_template_string(
+        """
     <html>
     <body>
         <form action="/search" method="post">
@@ -19,7 +20,7 @@ def index():
     </body>
     </html>
     """
-    return render_template_string(form_html)
+    )
 
 
 @app.route("/search", methods=["POST"])
@@ -28,30 +29,32 @@ def search():
     response = requests.get("https://www.one-tab.com/page/sUT47ugRTz6Qd8X8r5C1RQ")
     tree = html.fromstring(response.content)
 
-    # Encontrar todos os elementos 'tabGroupTitleText'
-    group_titles = tree.xpath('//div[@class="tabGroupTitleText"]')
+    # Encontrar todos os elementos 'tabGroupTitleText' e seus links associados
+    groups = tree.xpath('//div[contains(@class, "tabGroup")]')
 
-    # Dicionário para armazenar os títulos e seus links correspondentes
-    results = {}
+    results = []
+    for group in groups:
+        title = group.xpath('.//div[contains(@class, "tabGroupLabel")]/text()')
+        if not title:
+            continue
+        title = title[0].strip()
+        links = group.xpath('.//a[contains(@class, "tabLink")]/@href')
 
-    for title in group_titles:
-        # Presumindo que os links estão dentro de um elemento imediatamente após o título
-        sibling_links = title.xpath('following-sibling::div[1]//a[@class="tabLink"]')
-        results[title.text_content()] = [
-            link.get("href")
-            for link in sibling_links
-            if search_term.lower() in link.text_content().lower()
-        ]
+        # Filtrar os links com base no termo de pesquisa
+        filtered_links = [link for link in links if search_term.lower() in link.lower()]
+
+        if filtered_links:
+            results.append({"title": title, "links": filtered_links})
 
     # Construir a página de resultados
     results_html = """
     <html>
     <body>
         <h1>RESULTADOS</h1>
-        {% for title, links in results.items() %}
+        {% for result in results %}
         <div>
-            <h2>{{ title }}</h2>
-            {% for link in links %}
+            <h2>{{ result.title }}</h2>
+            {% for link in result.links %}
                 <a href="{{ link }}">{{ link }}</a><br>
             {% endfor %}
         </div>
